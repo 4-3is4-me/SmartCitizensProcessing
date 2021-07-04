@@ -7,15 +7,15 @@ int hour = 1;
 int min = 1;
 long lastUpdate = 0;
 long updateInterval = 20;
-String kitID = "13768";
+String kitID = "13777";
 char c1;
 char c2;
 String c3;
 int c4 = 0;
 char d1;
 char d2;
-String d3;
-int d4 = 0;
+String d3= "";
+String d4 = "";
 String resourceURL = "http://data.smartcitizen.me/v0/devices/"+kitID;
 
 //// text
@@ -36,7 +36,12 @@ String localtimestamp = "";
 String metaweatherqueryURL = "https://www.metaweather.com/api/location/search/?lattlong="+lat+","+lon; // api to serch location and retrieve 'woeid'
 String metaweatherwoeidURL = "https://www.metaweather.com/api/location/"+woe; // api to query time from location search ressult
 
-
+////////time
+char tadjustplus_minus; 
+char tadjust1;
+char tadjust2;
+String tadjust = "";
+String lastupdatelocal = "";
 
 //// sensors
 String timeStamp = "";
@@ -284,8 +289,8 @@ void drawSun() {
   
   sunshine = light/1000;
   
-  sunX = hour*width/16;
-
+  //sunX = hour*width/16;
+  sunX = (hour-5)*width/16;
   //// sun brightness
 
   color  sun1 = color(225, 225, 255);
@@ -548,7 +553,7 @@ void drawInterface(){
 textAlign(CENTER);
   fill(255);
   textSize(width/113.8);
-  text(timeStamp+" | Light: "+light+" lux  |  Temp: "+temp+" C  |  Hum: "+hum+" %  |  BP: "+pressure+" Kpa  |  c02: "+c02+" ppm | PM1: "+pm1+" ug/m3 | PM2.5: "+pm25+" ug/m3 | PM10: "+pm10+" ug/m3 | Noise: "+noise+" db | TV0C: "+vol+" ppb ", width/2, height-50);
+  text("Last Update, local time: "+lastupdatelocal+" | Light: "+light+" lux  |  Temp: "+temp+" C  |  Hum: "+hum+" %  |  BP: "+pressure+" Kpa  |  c02: "+c02+" ppm | PM1: "+pm1+" ug/m3 | PM2.5: "+pm25+" ug/m3 | PM10: "+pm10+" ug/m3 | Noise: "+noise+" db | TV0C: "+vol+" ppb ", width/2, height-50);
   text(city+" | "+country+" | "+tag1+"  |  "+tag2, width/2, height-30);
 }
 
@@ -739,33 +744,51 @@ void getData() {
 
 
   //// time
-   //timeStamp = data.getString("recorded_at");
-   timeStamp = localtimestamp;
+  tadjustplus_minus = localtimestamp.charAt(26); 
+  tadjust1 = localtimestamp.charAt(27);
+  tadjust2 = localtimestamp.charAt(28);
+  tadjust = ""+tadjust1  + tadjust2;
+   
+     
+   
+   
+  timeStamp = data.getString("recorded_at");
+  //timeStamp = localtimestamp;
 
-   c1 = timeStamp.charAt(11);
-   c2 = timeStamp.charAt(12);
-   d1 = timeStamp.charAt(14);
-   d2 = timeStamp.charAt(15);
-   c3 = ""+c1+c2;
-  
+  c1 = timeStamp.charAt(11);
+  c2 = timeStamp.charAt(12);
+  d1 = timeStamp.charAt(14);
+  d2 = timeStamp.charAt(15);
+  c3 = ""+c1+c2;
+ 
   if (c1+c2==23){
     c4 = 0;
 
   }else{
-    c4 = int(c3)+1;
+    c4 = int(c3);
+  }
+  println(localtimestamp);
+  println(c4);
+  println(tadjust);
+
+  if (tadjustplus_minus=='+'){
+    hour = c4 + int(tadjust);
+    println("adjust is plus");
+  }else{
+    hour = c4 - int(tadjust);
+    println("adjust is minus");
   }
 
-  d3 = ""+d1+c2;
-  d4 = int(d3);
-  min = d4;
-  hour = c4-5;
+  d3 = ""+d1;
+  d4 = ""+d2;
+  //min = d4;
+  //hour = c4-5;
+  lastupdatelocal = hour + ":" + d3 + d4;
    
   
   
   println("lastPost >> " + timeStamp + " Temp: " + temp + " ªC | C02: " + c02 + " ppm | BP " + pressure + " k Pa | Bat " + bat + " % | Light " + light + " lux | PM2.5 "  + pm25 + " ug/m3 | PM10 "  + pm10 + " ug/m3 | PM1 "  + pm1 + " ug/m3| Hum " + hum + " % Rel | Noise " + noise + " db | Vol "+ vol +" ppm");
-
+  println(lastupdatelocal);
   lastUpdate = millis();
   
 }
-    
-     
