@@ -157,7 +157,7 @@ void setup(){
 }
  
 
-
+///////////////////////////////////////main loop////////////////////////////////////
 void draw(){
  
  //// data
@@ -216,7 +216,7 @@ void draw(){
  drawPm10();
  
  //// land forground
-// drawLand2();
+ drawLand2();
  
  
  //// land fade
@@ -239,7 +239,7 @@ void draw(){
  
 }
 
-
+////////////////////////////Functions /////////////////////////////
 
 void drawSky(){
   
@@ -371,18 +371,20 @@ void drawSun() {
 
 ////////////////lets try and draw the land to reflect the sensor over the last 4 days/////////////
 void drawLand(){
-  //fill(sRed-hillCol,sGreen-hillCol,sBlue-hillCol);
-  fill(255,255,255);
+  fill(sRed-hillCol,sGreen-hillCol,sBlue-hillCol);
+  //fill(255,255,255);
   beginShape();   
   noStroke();
   int numberofvertex = ypoints.length;
  
   beginShape();
-  curveVertex(xpoints[0],ypoints[0]);  //first is to be duplicated as per instructions..
+  curveVertex(0,height);  //first is to be duplicated as per instructions..
+  curveVertex(0,height);
   for (int i = 0; i < numberofvertex; i++){
     curveVertex(xpoints[i], ypoints[i]);
   }
-  curveVertex(xpoints[numberofvertex-1], ypoints[numberofvertex-1]);  //last is to be duplicated too
+  curveVertex(width,height);  //last is to be duplicated too
+  curveVertex(width,height);
   endShape();
   
   
