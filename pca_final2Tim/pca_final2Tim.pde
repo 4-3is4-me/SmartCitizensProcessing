@@ -27,6 +27,7 @@ String city = "";
 String country = "";
 String locate = "";
 String exposure = "";
+String tag = "";
 String tag1 = "";    //one will be inside /outside
 String tag2 = "";    //one will be online/offline
 float lat = 0.0;
@@ -35,6 +36,7 @@ int woe = 44418;
 String localtimestamp = "";
 String metaweatherqueryURL = "https://www.metaweather.com/api/location/search/?lattlong="+lat+","+lon; // api to serch location and retrieve 'woeid'
 String metaweatherwoeidURL = "https://www.metaweather.com/api/location/"+woe; // api to query time from location search ressult
+int tagarraylen = 0;
 
 ////////time
 char tadjustplus_minus; 
@@ -282,15 +284,12 @@ void drawMoon(){
 }
 
 
-
-
-
 void drawSun() {
   
   sunshine = light/1000;
   
   //sunX = hour*width/16;
-  sunX = (hour-5)*width/16;
+  sunX = (hour-4)*width/16;   // was 5 changed to 4 as this made it in the middle of the screen at 12 5 is probably right considering daylight saving!
   //// sun brightness
 
   color  sun1 = color(225, 225, 255);
@@ -554,7 +553,7 @@ textAlign(CENTER);
   fill(255);
   textSize(width/113.8);
   text("Last Update, local time: "+lastupdatelocal+" | Light: "+light+" lux  |  Temp: "+temp+" C  |  Hum: "+hum+" %  |  BP: "+pressure+" Kpa  |  c02: "+c02+" ppm | PM1: "+pm1+" ug/m3 | PM2.5: "+pm25+" ug/m3 | PM10: "+pm10+" ug/m3 | Noise: "+noise+" db | TV0C: "+vol+" ppb ", width/2, height-50);
-  text(city+" | "+country+" | "+tag1+"  |  "+tag2, width/2, height-30);
+  text(city+" | "+country+" | "+tag1+" | "+tag2+ " | ", width/2, height-30);
 }
 
 
@@ -664,8 +663,48 @@ void drawLocation(){
   textSize(width/80);
   text(city,width-40,40);
 }
+
+void createtimes(){
+  //// taking the time difference out of the localtimestamp from weather api
+  tadjustplus_minus = localtimestamp.charAt(26); 
+  tadjust1 = localtimestamp.charAt(27);
+  tadjust2 = localtimestamp.charAt(28);
+  tadjust = ""+tadjust1  + tadjust2;
+  
+  //// taking the hours and minutes out of the UTC time of last recorded data from smart citizen api
+  c1 = timeStamp.charAt(11);
+  c2 = timeStamp.charAt(12);
+  d1 = timeStamp.charAt(14);
+  d2 = timeStamp.charAt(15);
+  c3 = ""+c1+c2;
  
-void getData() {
+  if (c1+c2==23){
+    c4 = 0;
+
+  }else{
+    c4 = int(c3);
+  }
+  //println(localtimestamp);
+  //println(c4);
+  //println(tadjust);
+
+  if (tadjustplus_minus=='+'){
+    hour = c4 + int(tadjust);
+    //println("adjust is plus");
+  }else{
+    hour = c4 - int(tadjust);
+    //println("adjust is minus");
+  }
+
+  d3 = ""+d1;
+  d4 = ""+d2;
+  //min = d4;
+  //hour = c4-5;
+  lastupdatelocal = hour + ":" + d3 + d4;
+  
+}
+ 
+void getData(){
   
   resourceURL = "http://data.smartcitizen.me/v0/devices/"+kitID;
   
@@ -679,12 +718,25 @@ void getData() {
   
   JSONObject location = data.getJSONObject("location"); // object within data with location
 
+// pulling UTC timestamp of last recorded sensor values
+  timeStamp = data.getString("recorded_at");
+
 // pulling hardware
-  hardware = version.getString("hw_ver");
+  //hardware = version.getString("hw_ver");
   
 // pulling system tags for indoor/outdoor and online/offline
-  tag1 = systemtags.getString(0);           //the tags seem to come in a random order, changed variable name to tag1 and tag2 to avoid confusion
-  tag2 = systemtags.getString(1);           // one will be inside or outside and one will be online or offline
+  tagarraylen = systemtags.size();
+  for ( int i = 0; i < tagarraylen; i++){
+    tag = systemtags.getString(i);
+    if (tag == "new"){
+      i++;
+    }else{
+      tag1 = systemtags.getString(i);
+      tag2 = systemtags.getString(i+1);
+      break;
+    }
+  }
+
   
 // pulling city and country code  
   city = location.getString("city");
@@ -728,6 +780,7 @@ void getData() {
   JSONObject volSensor = sensors.getJSONObject(0);     // You can get properties from an specific datapoint to do whatever you want.
    vol = volSensor.getFloat("value");
    
+   
   ///added for fetching local time
   
   String metaweatherqueryURL = "https://www.metaweather.com/api/location/search/?lattlong="+lat+","+lon; // api to search location and retrieve 'woeid'
@@ -742,50 +795,7 @@ void getData() {
   JSONObject request = loadJSONObject(metaweatherwoeidURL);
     localtimestamp = request.getString("time");
 
-
-  //// time
-  tadjustplus_minus = localtimestamp.charAt(26); 
-  tadjust1 = localtimestamp.charAt(27);
-  tadjust2 = localtimestamp.charAt(28);
-  tadjust = ""+tadjust1  + tadjust2;
-   
-     
-   
-   
-  timeStamp = data.getString("recorded_at");
-  //timeStamp = localtimestamp;
-
-  c1 = timeStamp.charAt(11);
-  c2 = timeStamp.charAt(12);
-  d1 = timeStamp.charAt(14);
-  d2 = timeStamp.charAt(15);
-  c3 = ""+c1+c2;
- 
-  if (c1+c2==23){
-    c4 = 0;
-
-  }else{
-    c4 = int(c3);
-  }
-  println(localtimestamp);
-  println(c4);
-  println(tadjust);
-
-  if (tadjustplus_minus=='+'){
-    hour = c4 + int(tadjust);
-    println("adjust is plus");
-  }else{
-    hour = c4 - int(tadjust);
-    println("adjust is minus");
-  }
-
-  d3 = ""+d1;
-  d4 = ""+d2;
-  //min = d4;
-  //hour = c4-5;
-  lastupdatelocal = hour + ":" + d3 + d4;
-   
-  
+  createtimes();
   
   println("lastPost >> " + timeStamp + " Temp: " + temp + " ªC | C02: " + c02 + " ppm | BP " + pressure + " k Pa | Bat " + bat + " % | Light " + light + " lux | PM2.5 "  + pm25 + " ug/m3 | PM10 "  + pm10 + " ug/m3 | PM1 "  + pm1 + " ug/m3| Hum " + hum + " % Rel | Noise " + noise + " db | Vol "+ vol +" ppm");
   println(lastupdatelocal);
